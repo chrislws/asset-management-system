@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资产管理</title>
+    <link href="/static/assets/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* 防止横向滚动 */
+        }
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0; /* 默认显示 */
+            background-color: #f8f9fa;
+            padding-top: 60px; /* 留出导航栏空间 */
+            transition: 0.3s;
+            z-index: 1;
+        }
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #e9ecef;
+        }
+        .content {
+            margin-left: 250px; /* 默认显示侧边栏，调整 margin */
+            transition: 0.3s;
+            padding: 20px;
+        }
+        .navbar {
+            background-color: #007bff !important; /* 蓝色导航栏 */
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .toggle-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+        }
+        .asset-entry-form {
+            width: 50%; /* 占内容区域一半宽度 */
+            max-height: 80vh; /* 限制高度为视口高度的80% */
+            overflow-y: auto; /* 支持垂直滚动 */
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-left: 0; /* 保持靠左对齐 */
+        }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container-fluid">
+        <span class="toggle-btn" onclick="toggleSidebar()">☰</span>
+        <a class="navbar-brand" href="#">资产管理系统</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">用户</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/">退出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- 左侧侧边栏 -->
+<div id="sidebar" class="sidebar">
+    <a href="/assets">资产管理</a>
+    <a href="#" onclick="loadAssetEntryForm()">资产录入</a>
+    <a href="#">设置</a>
+</div>
+
+<!-- 内容区域 -->
+<div id="content" class="content">
+    <div id="assetEntryContainer"></div> <!-- 仅保留占位符 -->
+</div>
+
+<!-- Bootstrap JS 和 Popper.js（用于导航和侧边栏功能） -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- 添加 jQuery 用于 AJAX -->
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+        sidebar.classList.toggle('active');
+        content.classList.toggle('active');
+    }
+    // 默认显示侧边栏
+    document.getElementById('sidebar').classList.remove('active');
+    document.getElementById('content').classList.remove('active');
+
+    function loadAssetEntryForm() {
+        $.ajax({
+            url: '/asset-entry',
+            method: 'GET',
+            success: function(data) {
+                $('#assetEntryContainer').html(data);
+                // 确保表单提交使用 AJAX
+                $('#assetEntryContainer form').submit(function(e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '/asset-entry',
+                        method: 'POST',
+                        data: $(this).serialize(),
+                        success: function(response) {
+                            window.location.href = '/assets';
+                        },
+                        error: function(xhr, status, error) {
+                            alert('资产录入失败: ' + error);
+                        }
+                    });
+                });
+            },
+            error: function(xhr, status, error) {
+                alert('加载资产录入表单失败: ' + error);
+            }
+        });
+    }
+</script>
+</body>
+</html>

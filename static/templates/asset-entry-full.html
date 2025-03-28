@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no"> <!-- 更严格的视口设置 -->
+    <title>资产录入</title>
+    <link href="/static/assets/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 加载自定义 CSS，确保在 Bootstrap 之后，以覆盖默认样式 -->
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        /* 强制重置所有默认样式，包括用户代理样式 */
+        *, *::before, *::after {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important; /* 强制应用边框盒模型 */
+            -webkit-box-sizing: border-box !important;
+            -moz-box-sizing: border-box !important;
+        }
+
+        html, body {
+            width: 100% !important; /* 强制确保 HTML 和 body 占满宽度 */
+            height: 100% !important; /* 强制确保 HTML 和 body 占满高度 */
+            overflow-x: hidden !important; /* 强制防止横向滚动 */
+            -webkit-overflow-scrolling: touch; /* 优化移动设备滚动 */
+        }
+
+        /* 移除 Bootstrap 的默认容器限制 */
+        .container, .container-fluid, .container-sm, .container-md, .container-lg, .container-xl, .container-xxl {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* 主要布局 */
+        .container {
+            display: flex !important;
+            width: 100% !important; /* 强制确保容器占满宽度 */
+            height: 100vh !important; /* 强制覆盖整个视口高度 */
+            margin: 0 !important; /* 移除任何 margin */
+            padding: 0 !important; /* 移除任何 padding */
+        }
+
+        .sidebar {
+            width: 200px !important; /* 固定导航栏宽度 */
+            background-color: #007bff; /* 蓝色背景 */
+            padding: 20px 0 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100% !important; /* 确保导航栏占满高度 */
+            z-index: 1000 !important; /* 确保导航栏在最上层，但低于模态框 */
+            box-sizing: border-box !important;
+        }
+
+        .sidebar a {
+            display: block !important;
+            padding: 10px 15px !important;
+            text-decoration: none !important;
+            color: white !important; /* 白色文字，与蓝色背景对比 */
+        }
+
+        .sidebar a:hover {
+            background-color: #0056b3 !important; /* 深蓝色悬停效果 */
+        }
+
+        .content {
+            margin-left: 200px !important; /* 导航栏宽度 */
+            padding: 0 !important; /* 移除所有内边距以填满宽度 */
+            width: 100% !important; /* 强制占用剩余宽度，填满整个窗口 */
+            height: 100vh !important; /* 覆盖整个视口高度 */
+            display: flex !important;
+            flex-direction: column !important; /* 垂直排列 */
+            gap: 30px !important; /* 增加间隔以更直观分离表单和列表 */
+            box-sizing: border-box !important;
+        }
+
+        .asset-entry-form, .asset-list-container {
+            width: 100% !important; /* 强制占用全宽 */
+            height: 50% !important; /* 各占 50% 高度 */
+            max-height: 50vh !important; /* 限制高度为视口高度的50% */
+            overflow-y: auto !important; /* 支持垂直滚动 */
+            background-color: white !important;
+            border: 1px solid #ccc !important; /* 添加边框以增强视觉分隔 */
+            border-radius: 0 !important; /* 移除圆角以填满宽度 */
+            box-shadow: none !important; /* 移除阴影以填满宽度 */
+            padding: 20px !important; /* 恢复必要的内边距 */
+            margin: 0 !important; /* 移除任何 margin */
+            box-sizing: border-box !important;
+        }
+
+        .asset-entry-form > form, .asset-list-container > table {
+            width: 100% !important; /* 确保表单和表格填满宽度 */
+            height: 100% !important; /* 确保表单和表格填满高度 */
+            box-sizing: border-box !important;
+        }
+
+        /* 强制移除 Bootstrap 网格系统的所有默认间距 */
+        .row, .row-fluid, .row-cols-1, .row-cols-2, .row-cols-3, .row-cols-4, .row-cols-5, .row-cols-6, .row-cols-7, .row-cols-8, .row-cols-9, .row-cols-10, .row-cols-11, .row-cols-12, .row-cols-sm-1, .row-cols-sm-2, .row-cols-sm-3, .row-cols-sm-4, .row-cols-sm-5, .row-cols-sm-6, .row-cols-sm-7, .row-cols-sm-8, .row-cols-sm-9, .row-cols-sm-10, .row-cols-sm-11, .row-cols-sm-12, .row-cols-md-1, .row-cols-md-2, .row-cols-md-3, .row-cols-md-4, .row-cols-md-5, .row-cols-md-6, .row-cols-md-7, .row-cols-md-8, .row-cols-md-9, .row-cols-md-10, .row-cols-md-11, .row-cols-md-12, .row-cols-lg-1, .row-cols-lg-2, .row-cols-lg-3, .row-cols-lg-4, .row-cols-lg-5, .row-cols-lg-6, .row-cols-lg-7, .row-cols-lg-8, .row-cols-lg-9, .row-cols-lg-10, .row-cols-lg-11, .row-cols-lg-12, .row-cols-xl-1, .row-cols-xl-2, .row-cols-xl-3, .row-cols-xl-4, .row-cols-xl-5, .row-cols-xl-6, .row-cols-xl-7, .row-cols-xl-8, .row-cols-xl-9, .row-cols-xl-10, .row-cols-xl-11, .row-cols-xl-12, .row-cols-xxl-1, .row-cols-xxl-2, .row-cols-xxl-3, .row-cols-xxl-4, .row-cols-xxl-5, .row-cols-xxl-6, .row-cols-xxl-7, .row-cols-xxl-8, .row-cols-xxl-9, .row-cols-xxl-10, .row-cols-xxl-11, .row-cols-xxl-12 {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12, .col-xl-1, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6, .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-10, .col-xl-11, .col-xl-12, .col-xxl-1, .col-xxl-2, .col-xxl-3, .col-xxl-4, .col-xxl-5, .col-xxl-6, .col-xxl-7, .col-xxl-8, .col-xxl-9, .col-xxl-10, .col-xxl-11, .col-xxl-12 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* 资产列表表格优化（保持字体大小为 11px） */
+        .asset-list-table {
+            width: 100% !important; /* 强制确保表格填满宽度 */
+            border-collapse: collapse !important;
+            background-color: white !important;
+            border: none !important; /* 移除表格边框以填满宽度 */
+            border-radius: 0 !important; /* 移除圆角以填满宽度 */
+            box-shadow: none !important; /* 移除阴影以填满宽度 */
+            overflow-y: auto !important; /* 支持垂直滚动 */
+            overflow-x: hidden !important; /* 移除水平滚动，隐藏溢出内容 */
+        }
+
+        .asset-list-table th, .asset-list-table td {
+            padding: 4px !important; /* 保持内边距以适应字体 */
+            text-align: left !important;
+            border-bottom: 1px solid #ddd !important;
+            white-space: nowrap !important; /* 防止文本换行 */
+            overflow: hidden !important; /* 隐藏溢出内容 */
+            text-overflow: ellipsis !important; /* 使用省略号表示溢出 */
+            font-size: 11px !important; /* 保持字体大小为 11px */
+        }
+
+        .asset-list-table th {
+            background-color: #f8f9fa !important;
+            font-weight: bold !important;
+            width: 5% !important; /* 每个主要列占 5% */
+        }
+
+        .asset-list-table th.remarks {
+            width: 15% !important; /* 增加备注列宽度以填满剩余空间 */
+        }
+
+        .asset-list-table td.remarks {
+            white-space: normal !important; /* 允许换行 */
+            max-width: 150px !important; /* 保持最大宽度以适应窗口 */
+            overflow-wrap: break-word !important; /* 自动换行 */
+            font-size: 11px !important; /* 保持备注列字体大小为 11px */
+        }
+
+        .asset-list-table .action-buttons {
+            white-space: nowrap; /* 确保操作按钮不换行 */
+        }
+
+        .pagination {
+            margin-top: 10px !important;
+            text-align: right !important;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .invalid-feedback {
+            display: none !important;
+            color: #dc3545 !important;
+            font-size: 0.875em !important;
+        }
+
+        .is-invalid + .invalid-feedback {
+            display: block !important;
+        }
+
+        #toast {
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            min-width: 300px !important;
+            padding: 15px !important;
+            background-color: #28a745 !important;
+            color: white !important;
+            border-radius: 5px !important;
+            z-index: 1001 !important;
+            display: none !important;
+        }
+
+        /* 优化编辑模态框样式（横向扩展） */
+        #editModal {
+            display: none;
+        }
+
+        #editModal .modal-dialog {
+            max-width: 1200px !important; /* 横向扩展到 1200px */
+            position: fixed !important; /* 强制固定定位 */
+            top: 50% !important;
+            left: 50% !important;
+            width: auto !important;
+            height: auto !important;
+            max-height: 80vh !important; /* 限制最大高度，防止纵向过长 */
+            overflow-y: auto !important; /* 支持垂直滚动 */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important; /* 确保水平居中 */
+            transform: translate(-50%, -50%) !important; /* 强制居中 */
+            pointer-events: none !important; /* 防止点击穿透 */
+        }
+
+        #editModal .modal-content {
+            background-color: #f9f9f9; /* 浅灰背景 */
+            border-radius: 15px; /* 圆角边框 */
+            border: 2px solid #007bff; /* 蓝色边框 */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); /* 增强阴影效果 */
+            padding: 40px; /* 增大内边距 */
+            pointer-events: auto !important; /* 恢复内容点击 */
+        }
+
+        #editModal .modal-header {
+            border-bottom: 2px solid #007bff; /* 蓝色下边框 */
+            background-color: #e9ecef; /* 浅灰标题背景 */
+            border-radius: 10px 10px 0 0; /* 圆角顶部 */
+            padding: 20px 30px; /* 增大标题区域内边距 */
+        }
+
+        #editModal .modal-title {
+            color: #007bff; /* 蓝色标题文字 */
+            font-weight: bold;
+            font-size: 1.25rem; /* 增大标题字体 */
+        }
+
+        #editModal .modal-body {
+            padding: 30px 0; /* 增大内容区域内边距 */
+        }
+
+        #editModal .form-group {
+            margin-bottom: 35px !important; /* 增大字段间距 */
+        }
+
+        #editModal label {
+            font-weight: bold;
+            color: #333; /* 深灰标签文字 */
+            font-size: 1rem; /* 增大标签字体 */
+        }
+
+        #editModal .form-control {
+            border-radius: 10px; /* 增大圆角输入框 */
+            border: 1px solid #ccc; /* 浅灰边框 */
+            padding: 15px; /* 增大输入框内边距 */
+            font-size: 1rem; /* 增大输入框字体 */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* 添加过渡效果 */
+        }
+
+        #editModal .form-control:focus {
+            border-color: #007bff; /* 聚焦时蓝色边框 */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); /* 聚焦时添加阴影 */
+            outline: none; /* 移除默认轮廓 */
+        }
+
+        #editModal .form-check {
+            margin-right: 25px; /* 增大单选框间距 */
+            margin-bottom: 15px;
+        }
+
+        #editModal .form-check-label {
+            margin-left: 10px; /* 增大单选框文字间距 */
+            font-size: 1rem; /* 增大单选框文字字体 */
+        }
+
+        #editModal .btn-primary {
+            background-color: #007bff; /* 蓝色按钮 */
+            border: none;
+            padding: 15px 30px; /* 增大按钮内边距 */
+            font-size: 1.1rem; /* 增大按钮文字 */
+            border-radius: 10px; /* 增大圆角按钮 */
+            transition: background-color 0.3s ease, transform 0.2s ease; /* 添加过渡和缩放效果 */
+        }
+
+        #editModal .btn-primary:hover {
+            background-color: #0056b3; /* 深蓝色悬停效果 */
+            transform: scale(1.05); /* 悬停时轻微放大 */
+        }
+
+        #editModal .btn-close {
+            background-color: #fff; /* 关闭按钮背景 */
+            border: 1px solid #007bff; /* 蓝色边框 */
+            border-radius: 50%; /* 圆形关闭按钮 */
+            padding: 10px; /* 增大关闭按钮大小 */
+            transition: opacity 0.3s ease; /* 添加过渡效果 */
+        }
+
+        #editModal .btn-close:hover {
+            opacity: 0.7; /* 悬停时降低透明度 */
+        }
+
+        /* 确保模态框居中 */
+        .modal {
+            display: none; /* 初始隐藏 */
+            z-index: 1050 !important; /* 确保模态框在最上层 */
+        }
+
+        .modal-dialog {
+            display: flex !important;
+            align-items: center !important;
+            min-height: calc(100vh - 1rem) !important; /* 确保垂直居中 */
+            position: fixed !important; /* 强制固定定位 */
+            top: 50% !important;
+            left: 50% !important;
+            width: auto !important;
+            height: auto !important;
+            max-height: 80vh !important; /* 限制最大高度 */
+            transform: translate(-50%, -50%) !important; /* 强制居中 */
+            pointer-events: none !important; /* 防止点击穿透 */
+        }
+
+        .modal-content {
+            margin: auto !important; /* 确保水平居中 */
+            pointer-events: auto !important; /* 恢复内容点击 */
+        }
+
+        /* 添加动画效果（加快速度，优化丝滑度） */
+        #editModal .modal-dialog {
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out !important; /* 缩短动画时间，使用 ease-out 曲线 */
+            opacity: 0;
+            transform: scale(0.9) translate(-50%, -50%); /* 微小缩放初始状态 */
+        }
+
+        #editModal.show .modal-dialog {
+            opacity: 1;
+            transform: scale(1) translate(-50%, -50%);
+        }
+
+        /* 模态背景 */
+        .modal-backdrop {
+            z-index: 1040 !important; /* 确保背景低于模态框 */
+            background-color: rgba(0, 0, 0, 0.6); /* 稍深背景以增强对比 */
+            transition: opacity 0.2s ease-out; /* 缩短背景过渡时间 */
+        }
+
+        /* 响应式设计（横向优先，防止纵向过长） */
+        @media (max-width: 1200px) {
+            #editModal .modal-dialog {
+                max-width: 95% !important; /* 大屏幕适配，略微缩小以适应 */
+            }
+        }
+
+        @media (max-width: 992px) {
+            #editModal .modal-dialog {
+                max-width: 85% !important; /* 中等屏幕适配 */
+            }
+            #editModal .row {
+                flex-direction: column !important; /* 小屏幕时纵向排列，防止过宽 */
+            }
+            #editModal .col-12, #editModal .col-md-6 {
+                width: 100% !important; /* 确保每个字段占满宽度 */
+            }
+            #editModal .form-group {
+                margin-bottom: 25px !important; /* 减少间距适应小屏幕 */
+            }
+        }
+
+        @media (max-width: 768px) {
+            #editModal .modal-dialog {
+                max-width: 90% !important; /* 更宽松的宽度适应小屏幕 */
+            }
+            #editModal .form-group {
+                margin-bottom: 20px !important; /* 进一步减少间距 */
+            }
+            #editModal .form-control {
+                padding: 10px !important;
+                font-size: 0.9rem !important;
+            }
+            #editModal .btn-primary {
+                padding: 10px 20px !important;
+                font-size: 1rem !important;
+            }
+            #editModal .modal-header {
+                padding: 15px 20px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #editModal .modal-dialog {
+                max-width: 85% !important; /* 最小屏幕适配 */
+            }
+            #editModal .form-group {
+                margin-bottom: 15px !important;
+            }
+            #editModal .form-control, #editModal .form-check-label, #editModal label {
+                font-size: 0.8rem !important;
+            }
+            #editModal .btn-primary {
+                padding: 8px 16px !important;
+                font-size: 0.9rem !important;
+            }
+        }
+
+        /* 加载状态 */
+        #loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1002;
+            transition: opacity 0.3s ease; /* 添加加载状态过渡 */
+        }
+
+        #loading.show {
+            opacity: 1;
+        }
+
+        #loading.hide {
+            opacity: 0;
+        }
+
+        /* 资产录入表单标题栏样式 */
+        .asset-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #007bff; /* 与侧边栏一致的蓝色背景 */
+            color: white;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .asset-entry-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .asset-entry-header .logout-btn {
+            background-color: #dc3545; /* 退出按钮红色背景 */
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .asset-entry-header .logout-btn:hover {
+            background-color: #c82333; /* 深红色悬停效果 */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <a href="/asset-entry">资产录入</a>
+        <a href="/assets/list">资产管理</a>
+        <a href="#">设置</a>
+    </div>
+    <div class="content">
+        <div class="asset-entry-form">
+            <div class="asset-entry-header">
+                <h2>资产录入</h2>
+                <button class="logout-btn" onclick="window.location.href='/login'">退出</button>
+            </div>
+            <form id="assetEntryForm">
+                <div class="row">
+                    <div class="col-12 form-group">
+                        <label for="serialNumber">序列号</label>
+                        <input type="text" class="form-control" id="serialNumber" name="serialNumber">
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="name">资产名称</label>
+                        <input type="text" class="form-control" id="name" name="name">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label>设备类型</label><br>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" id="categoryHost" name="category" value="主机">
+                            <label class="form-check-label" for="categoryHost">主机</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" id="categoryMonitor" name="category" value="显示器">
+                            <label class="form-check-label" for="categoryMonitor">显示器</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" id="categoryLaptop" name="category" value="笔记本">
+                            <label class="form-check-label" for="categoryLaptop">笔记本</label>
+                        </div>
+                    </div>
+                    <div class="col-6 form-group">
+                        <label>品牌</label><br>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" id="brandDell" name="brand" value="戴尔">
+                            <label class="form-check-label" for="brandDell">戴尔</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" id="brandLenovo" name="brand" value="联想">
+                            <label class="form-check-label" for="brandLenovo">联想</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" id="brandHuawei" name="brand" value="华为">
+                            <label class="form-check-label" for="brandHuawei">华为</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label for="applicationDate">申请时间</label>
+                        <input type="date" class="form-control" id="applicationDate" name="applicationDate">
+                    </div>
+                    <div class="col-6 form-group">
+                        <label for="specification">设备规格</label>
+                        <input type="text" class="form-control" id="specification" name="specification">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label for="assetCode">资产编码</label>
+                        <input type="text" class="form-control" id="assetCode" name="assetCode">
+                    </div>
+                    <div class="col-6 form-group">
+                        <label for="orderDate">订购日期</label>
+                        <input type="date" class="form-control" id="orderDate" name="orderDate">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label for="createdAt">创建日期</label>
+                        <input type="date" class="form-control" id="createdAt" name="createdAt" readonly value="{{.CreatedAt}}">
+                    </div>
+                    <div class="col-6 form-group">
+                        <label for="department">所在部门</label>
+                        <input type="text" class="form-control" id="department" name="department">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label for="location">所在地</label>
+                        <input type="text" class="form-control" id="location" name="location">
+                    </div>
+                    <div class="col-6 form-group">
+                        <label for="supplier">供应商</label>
+                        <input type="text" class="form-control" id="supplier" name="supplier">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label for="recipient">领用人</label>
+                        <input type="text" class="form-control" id="recipient" name="recipient">
+                    </div>
+                    <div class="col-6 form-group">
+                        <label for="recipientDepartment">领取部门</label>
+                        <input type="text" class="form-control" id="recipientDepartment" name="recipient_department">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 form-group">
+                        <label for="remarks">备注</label>
+                        <textarea class="form-control" id="remarks" name="remarks" rows="3"></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">提交</button>
+            </form>
+        </div>
+        <div class="asset-list-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>资产列表</h3>
+                <div>
+                    <label for="searchQuery" class="me-2">搜索：</label>
+                    <input type="text" id="searchQuery" class="form-control" style="width: 250px; display: inline-block;" placeholder="输入关键字...">
+                    <label for="pageSizeSelect" class="ms-3 me-2">每页显示：</label>
+                    <select id="pageSizeSelect" class="form-select" style="width: auto; display: inline-block;">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
+            <table class="asset-list-table">
+                <thead>
+                <tr>
+                    <th style="width: 5%;">序列号</th>
+                    <th style="width: 5%;">资产名称</th>
+                    <th style="width: 5%;">设备类型</th>
+                    <th style="width: 5%;">品牌</th>
+                    <th style="width: 5%;">申请时间</th>
+                    <th style="width: 5%;">设备规格</th>
+                    <th style="width: 5%;">资产编码</th>
+                    <th style="width: 5%;">订购日期</th>
+                    <th style="width: 5%;">创建日期</th>
+                    <th style="width: 5%;">所在部门</th>
+                    <th style="width: 5%;">所在地</th>
+                    <th style="width: 5%;">供应商</th>
+                    <th style="width: 5%;">领用人</th>
+                    <th style="width: 5%;">领取部门</th>
+                    <th style="width: 15%;">备注</th>
+                    <th style="width: 5%;">操作</th>
+                </tr>
+                </thead>
+                <tbody id="assetListBody"></tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑模态框（横向扩展） -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"> <!-- 强制使用 Bootstrap 的居中类 -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">编辑资产</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAssetForm">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="row g-4"> <!-- 使用 g-4 类增加网格间距 -->
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editSerialNumber">序列号</label>
+                            <input type="text" class="form-control" id="editSerialNumber" name="serialNumber">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editName">资产名称</label>
+                            <input type="text" class="form-control" id="editName" name="name">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label>设备类型</label><br>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" id="editCategoryHost" name="category" value="主机">
+                                <label class="form-check-label" for="editCategoryHost">主机</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" id="editCategoryMonitor" name="category" value="显示器">
+                                <label class="form-check-label" for="editCategoryMonitor">显示器</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" id="editCategoryLaptop" name="category" value="笔记本">
+                                <label class="form-check-label" for="editCategoryLaptop">笔记本</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label>品牌</label><br>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" id="editBrandDell" name="brand" value="戴尔">
+                                <label class="form-check-label" for="editBrandDell">戴尔</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" id="editBrandLenovo" name="brand" value="联想">
+                                <label class="form-check-label" for="editBrandLenovo">联想</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" id="editBrandHuawei" name="brand" value="华为">
+                                <label class="form-check-label" for="editBrandHuawei">华为</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editApplicationDate">申请时间</label>
+                            <input type="date" class="form-control" id="editApplicationDate" name="applicationDate">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editSpecification">设备规格</label>
+                            <input type="text" class="form-control" id="editSpecification" name="specification">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editAssetCode">资产编码</label>
+                            <input type="text" class="form-control" id="editAssetCode" name="assetCode">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editOrderDate">订购日期</label>
+                            <input type="date" class="form-control" id="editOrderDate" name="orderDate">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editCreatedAt">创建日期</label>
+                            <input type="date" class="form-control" id="editCreatedAt" name="createdAt" readonly>
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editDepartment">所在部门</label>
+                            <input type="text" class="form-control" id="editDepartment" name="department">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editLocation">所在地</label>
+                            <input type="text" class="form-control" id="editLocation" name="location">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editSupplier">供应商</label>
+                            <input type="text" class="form-control" id="editSupplier" name="supplier">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editRecipient">领用人</label>
+                            <input type="text" class="form-control" id="editRecipient" name="recipient">
+                        </div>
+                        <div class="col-12 col-md-6 form-group">
+                            <label for="editRecipientDepartment">领取部门</label>
+                            <input type="text" class="form-control" id="editRecipientDepartment" name="recipient_department">
+                        </div>
+                        <div class="col-12 form-group">
+                            <label for="editRemarks">备注</label>
+                            <textarea class="form-control" id="editRemarks" name="remarks" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4"> <!-- 增加按钮与表单的间距 -->
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 加载状态 -->
+<div id="loading" class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">加载中...</span>
+</div>
+
+<!-- Bootstrap JS 和 jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- 确保 jQuery 先加载 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> <!-- 然后加载 Bootstrap -->
+<!-- 加载自定义 JavaScript，确保在 Bootstrap 之后，以覆盖默认行为 -->
+<script src="/static/js/scripts.js"></script>
+<script>
+    // Debounce 函数，用于优化模糊搜索性能
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // 提交表单并刷新列表（简化验证）
+    $('#assetEntryForm').submit(function(e) {
+        e.preventDefault();
+        console.log("提交资产录入表单");
+        showLoading(true);
+        $.ajax({
+            url: '/asset-entry',
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                console.log("资产录入成功: ", response);
+                if (response.message === "success") {
+                    // 清空表单
+                    $('#assetEntryForm')[0].reset();
+                    // 显示成功提示
+                    showToast('资产录入成功！', 'success');
+                    // 刷新资产列表
+                    loadAssetList(1, $('#pageSizeSelect').val(), $('#searchQuery').val());
+                } else {
+                    showToast('资产录入失败: ' + (response.message || '未知错误'), 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log("资产录入失败: " + error);
+                showToast('资产录入失败: ' + error, 'error');
+            },
+            complete: function() {
+                showLoading(false);
+            }
+        });
+    });
+
+    // 编辑表单提交（简化验证）
+    $('#editAssetForm').submit(function(e) {
+        e.preventDefault();
+        console.log("提交资产编辑表单");
+        showLoading(true);
+        $.ajax({
+            url: '/asset-entry',
+            method: 'POST',
+            data: $(this).serialize() + '&action=edit',
+            success: function(response) {
+                console.log("资产编辑成功: ", response);
+                if (response.message === "success") {
+                    $('#editModal').modal('hide');
+                    showToast('资产编辑成功！', 'success');
+                    loadAssetList(1, $('#pageSizeSelect').val(), $('#searchQuery').val());
+                } else {
+                    showToast('资产编辑失败: ' + (response.message || '未知错误'), 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log("资产编辑失败: " + error);
+                showToast('资产编辑失败: ' + error, 'error');
+            },
+            complete: function() {
+                showLoading(false);
+            }
+        });
+    });
+
+    // 加载资产列表（支持分页、优化后的模糊搜索和每页条数调整）
+    function loadAssetList(page = 1, pageSize = 20, query = '') {
+        console.log("加载资产列表，页码: " + page + ", 每页条数: " + pageSize + ", 搜索关键字: " + query);
+        showLoading(true);
+        $.ajax({
+            url: '/assets/list?page=' + page + '&pageSize=' + pageSize + (query ? '&query=' + encodeURIComponent(query) : ''),
+            method: 'GET',
+            success: function(response) {
+                console.log("资产列表加载成功，数据: ", response);
+                let html = '';
+                response.assets.forEach(asset => {
+                    html += `
+                            <tr>
+                                <td>${asset.serial_number || ''}</td>
+                                <td>${asset.name || ''}</td>
+                                <td>${asset.category || ''}</td>
+                                <td>${asset.brand || ''}</td>
+                                <td>${asset.application_date || ''}</td>
+                                <td>${asset.specification || ''}</td>
+                                <td>${asset.asset_code || ''}</td>
+                                <td>${asset.order_date || ''}</td>
+                                <td>${asset.created_at || ''}</td>
+                                <td>${asset.department || ''}</td>
+                                <td>${asset.location || ''}</td>
+                                <td>${asset.supplier || ''}</td>
+                                <td>${asset.recipient || ''}</td>
+                                <td>${asset.recipient_department || ''}</td>
+                                <td class="remarks">${asset.remarks || ''}</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-primary edit-btn" data-id="${asset.id}">编辑</button>
+                                    <button class="btn btn-sm btn-danger delete-btn ms-2" data-id="${asset.id}">删除</button>
+                                </td>
+                            </tr>
+                        `;
+                });
+                $('#assetListBody').html(html);
+
+                // 生成分页
+                let pagination = '';
+                if (response.pages > 1) {
+                    pagination += `<nav><ul class="pagination">`;
+                    for (let i = 1; i <= response.pages; i++) {
+                        pagination += `
+                                <li class="page-item ${i === response.page ? 'active' : ''}">
+                                    <a class="page-link" href="#" onclick="loadAssetList(${i}, ${response.pageSize}, '${query}'); return false;">${i}</a>
+                                </li>
+                            `;
+                    }
+                    pagination += `</ul></nav>`;
+                }
+                $('#pagination').html(pagination);
+
+                // 绑定编辑和删除事件
+                $('.edit-btn').click(function() {
+                    console.log("触发编辑模态框");
+                    const id = $(this).data('id');
+                    showLoading(true);
+                    $.ajax({
+                        url: '/assets/list?id=' + id,
+                        method: 'GET',
+                        success: function(response) {
+                            console.log("获取资产详情成功，数据: ", response);
+                            const asset = response.assets[0];
+                            $('#editId').val(asset.id);
+                            $('#editSerialNumber').val(asset.serial_number);
+                            $('#editName').val(asset.name);
+                            $(`#editModal input[name="category"][value="${asset.category}"]`).prop('checked', true);
+                            $(`#editModal input[name="brand"][value="${asset.brand}"]`).prop('checked', true);
+                            $('#editApplicationDate').val(asset.application_date);
+                            $('#editSpecification').val(asset.specification);
+                            $('#editAssetCode').val(asset.asset_code);
+                            $('#editOrderDate').val(asset.order_date);
+                            $('#editCreatedAt').val(asset.created_at);
+                            $('#editDepartment').val(asset.department);
+                            $('#editLocation').val(asset.location);
+                            $('#editSupplier').val(asset.supplier);
+                            $('#editRecipient').val(asset.recipient);
+                            $('#editRecipientDepartment').val(asset.recipient_department);
+                            $('#editRemarks').val(asset.remarks);
+                            var modal = new bootstrap.Modal(document.getElementById('editModal'), {
+                                backdrop: true, // 允许点击遮罩层关闭模态框
+                                keyboard: true,
+                                focus: true // 确保模态框获得焦点
+                            });
+                            modal.show();
+                            console.log("模态框显示，modal.dialog: ", document.querySelector('.modal-dialog').style);
+                            // 强制检查和设置居中样式
+                            const modalDialog = document.querySelector('.modal-dialog');
+                            if (modalDialog) {
+                                modalDialog.style.display = 'flex';
+                                modalDialog.style.alignItems = 'center';
+                                modalDialog.style.justifyContent = 'center';
+                                modalDialog.style.position = 'fixed';
+                                modalDialog.style.top = '50%';
+                                modalDialog.style.left = '50%';
+                                modalDialog.style.width = 'auto';
+                                modalDialog.style.height = 'auto';
+                                modalDialog.style.opacity = '1';
+                                modalDialog.style.transform = 'translate(-50%, -50%) scale(1)';
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.log("获取资产详情失败: " + error);
+                            showToast('获取资产详情失败: ' + error, 'error');
+                        },
+                        complete: function() {
+                            showLoading(false);
+                        }
+                    });
+                });
+
+                $('.delete-btn').click(function() {
+                    const id = $(this).data('id');
+                    if (confirm('确定删除此资产吗？此操作不可逆！')) {
+                        showLoading(true);
+                        $.ajax({
+                            url: '/asset-entry?id=' + id,
+                            method: 'DELETE',
+                            success: function(response) {
+                                console.log("资产删除成功: ", response);
+                                if (response.message === "success") {
+                                    showToast('资产删除成功！', 'success');
+                                    loadAssetList(1, $('#pageSizeSelect').val(), $('#searchQuery').val());
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.log("资产删除失败: " + error);
+                                showToast('资产删除失败: ' + error, 'error');
+                            },
+                            complete: function() {
+                                showLoading(false);
+                            }
+                        });
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                console.log("加载资产列表失败: " + error);
+                showToast('加载资产列表失败: ' + error, 'error');
+            },
+            complete: function() {
+                showLoading(false);
+            }
+        });
+    }
+
+    // 优化模糊搜索（减少最小输入长度，提升实时性）
+    const debounceLoadAssetList = debounce(function(query) {
+        if (query.length >= 1) { // 减少到 1 个字符触发搜索
+            showLoading(true); // 显示加载状态
+            loadAssetList(1, $('#pageSizeSelect').val(), query);
+        } else if (query.length === 0) {
+            showLoading(true); // 显示加载状态
+            loadAssetList(1, $('#pageSizeSelect').val(), ''); // 清空搜索时加载所有数据
+        }
+    }, 200); // 缩短延迟时间以提升实时性
+
+    // 模糊搜索和每页条数变化（增强用户反馈）
+    $('#searchQuery').on('input', function() {
+        const query = $(this).val().trim();
+        debounceLoadAssetList(query);
+        if (query.length >= 1) {
+            showToast('正在搜索资产...', 'info');
+        }
+    });
+
+    $('#pageSizeSelect').change(function() {
+        showToast('每页显示条数已更新', 'info');
+        loadAssetList(1, $(this).val(), $('#searchQuery').val());
+    });
+
+    // 页面加载时加载资产列表（默认第 1 页，20 条）
+    $(document).ready(function() {
+        console.log("页面加载完成，初始化资产列表");
+        loadAssetList(1, 20);
+    });
+
+    // 导航点击处理（增强用户反馈）
+    $('.sidebar a').click(function(e) {
+        e.preventDefault();
+        const href = $(this).attr('href');
+        console.log("导航点击: " + href);
+        if (href === "/asset-entry") {
+            // 保持在当前页面（/asset-entry）
+            showToast('已切换至资产录入页面', 'info');
+            return;
+        } else if (href === "/assets/list") {
+            window.location.href = href; // 跳转到资产列表
+            showToast('正在跳转至资产管理页面...', 'info');
+        } else if (href === "#") {
+            showToast('此功能暂未实现', 'warning');
+        }
+    });
+
+    // 显示 Toast 提示（增强样式）
+    function showToast(message, type = 'success') {
+        const toast = $('#toast');
+        toast.text(message);
+        let bgColor, textColor;
+        switch (type) {
+            case 'success':
+                bgColor = '#28a745';
+                textColor = 'white';
+                break;
+            case 'error':
+                bgColor = '#dc3545';
+                textColor = 'white';
+                break;
+            case 'info':
+                bgColor = '#007bff';
+                textColor = 'white';
+                break;
+            case 'warning':
+                bgColor = '#ffc107';
+                textColor = 'black';
+                break;
+        }
+        toast.css({
+            'background-color': bgColor,
+            'color': textColor
+        });
+        toast.fadeIn(300).delay(3000).fadeOut(300);
+    }
+
+    // 显示/隐藏加载状态（增强动画）
+    function showLoading(show) {
+        const loading = $('#loading');
+        if (show) {
+            loading.addClass('show').removeClass('hide');
+        } else {
+            loading.addClass('hide').removeClass('show');
+            setTimeout(() => loading.hide(), 300); // 等待动画完成后再隐藏
+        }
+    }
+</script>
+<!-- Toast 容器 -->
+<div id="toast"></div>
+</body>
+</html>
